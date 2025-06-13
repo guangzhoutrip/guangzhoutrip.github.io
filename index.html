@@ -18,18 +18,15 @@
     /* Hamburger menu */
     #menu-btn {
       position: fixed;
-      top: 1rem;
-      left: 1rem;
+      top: 1rem; left: 1rem;
       font-size: 1.75rem;
       color: #e0e0e0;
       cursor: pointer;
       z-index: 1000;
     }
     #side-menu {
-      position: fixed;
-      top: 0; left: -220px;
-      width: 200px;
-      height: 100%;
+      position: fixed; top: 0; left: -220px;
+      width: 200px; height: 100%;
       background: #1e1e1e;
       transition: left 0.3s ease;
       padding-top: 3rem;
@@ -55,7 +52,7 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.7);
     }
     header h1 { font-size: 1.75rem; margin-bottom: 0.25rem; }
-    header p { font-size: 1rem; opacity: 0.9; }
+    header p  { font-size: 1rem; opacity: 0.9; }
 
     .container {
       max-width: 640px;
@@ -72,21 +69,26 @@
       font-size: 1rem;
       position: relative;
       cursor: pointer;
-      transition: background 0.2s ease, box-shadow 0.2s ease;
+      transition: background 0.2s, box-shadow 0.2s;
       box-shadow: 0 1px 3px rgba(0,0,0,0.5);
       color: #e0e0e0;
     }
-    .accordion:hover { background: #2a2a2a; box-shadow: 0 2px 6px rgba(0,0,0,0.7); }
+    .accordion:hover {
+      background: #2a2a2a;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.7);
+    }
     .accordion::after {
       content: "\25BC";
       position: absolute;
       right: 1rem; top: 50%;
       transform: translateY(-50%) rotate(0deg);
-      transition: transform 0.3s ease;
+      transition: transform 0.3s;
       font-size: 0.85rem;
       color: #b8a585;
     }
-    .accordion.active::after { transform: translateY(-50%) rotate(180deg); }
+    .accordion.active::after {
+      transform: translateY(-50%) rotate(180deg);
+    }
 
     .panel {
       background: #1e1e1e;
@@ -96,7 +98,7 @@
       border-radius: 0 0 6px 6px;
       overflow: hidden;
       max-height: 0;
-      transition: max-height 0.3s ease;
+      transition: max-height 0.3s;
       box-shadow: 0 1px 2px rgba(0,0,0,0.5);
     }
     .panel ul {
@@ -120,19 +122,22 @@
     #wheel-section h2 { text-align: center; margin-bottom: 1rem; }
     #wheel-items {
       width: 100%; height: 6rem;
-      background: #1e1e1e; color: #e0e0e0; border: 1px solid #aaa295;
+      background: #1e1e1e; color: #e0e0e0;
+      border: 1px solid #aaa295;
       border-radius: 4px; padding: 0.5rem;
       font-family: inherit; margin-bottom: 1rem;
     }
     #spin-btn {
-      display: block;
-      margin: 0 auto 1rem;
+      display: block; margin: 0 auto 1rem;
       padding: 0.5rem 1.5rem;
       background: #b8a585; color: #121212;
       border: none; border-radius: 4px;
       cursor: pointer; font-size: 1rem;
     }
     #wheelcanvas {
+      width: 100%;
+      max-width: 500px;
+      aspect-ratio: 1/1;
       display: block;
       margin: 0 auto;
       background: #1e1e1e;
@@ -403,14 +408,13 @@
   <section id="wheel-section">
     <h2>Wheel Spin</h2>
     <textarea id="wheel-items" placeholder="Enter items, one per line">Liam
-Raymond
 Peter
-Pierce
-Darren
 Remy
-</textarea>
+Darren
+Pierce
+Raymond</textarea>
     <button id="spin-btn">Spin the Wheel</button>
-    <canvas id="wheelcanvas" width="500" height="500"></canvas>
+    <canvas id="wheelcanvas"></canvas>
   </section>
 
   <!-- Result Modal -->
@@ -424,11 +428,11 @@ Remy
 
   <script>
     // Menu toggle
-    const menuBtn = document.getElementById('menu-btn');
-    const sideMenu = document.getElementById('side-menu');
+    const menuBtn = document.getElementById('menu-btn'),
+          sideMenu = document.getElementById('side-menu');
     menuBtn.addEventListener('click', () => sideMenu.classList.toggle('open'));
 
-    // Links
+    // Section links
     document.getElementById('link-itinerary').addEventListener('click', e => {
       e.preventDefault();
       document.getElementById('itinerary').style.display = 'block';
@@ -443,85 +447,92 @@ Remy
       drawWheel();
     });
 
-    // Accordion
+    // Accordion behavior
     document.querySelectorAll('.accordion').forEach(btn => {
       btn.addEventListener('click', () => {
         btn.classList.toggle('active');
         const panel = btn.nextElementSibling;
-        panel.style.maxHeight = panel.style.maxHeight ? null : panel.scrollHeight + "px";
+        panel.style.maxHeight = panel.style.maxHeight
+          ? null
+          : panel.scrollHeight + 'px';
       });
     });
 
-    // Wheel logic (unchanged)
-    const canvas = document.getElementById('wheelcanvas');
-    const ctx = canvas.getContext('2d');
-
-    // —— Retina‐friendly canvas setup ——
-    const dpr = window.devicePixelRatio || 1;
-    const size = 500;                                // logical size in CSS px
-    canvas.style.width  = size + 'px';
-    canvas.style.height = size + 'px';
-    canvas.width  = size * dpr;                      // actual pixel buffer
-    canvas.height = size * dpr;
-    ctx.scale(dpr, dpr);                             // so all your draw calls map 1:1
-    ctx.textBaseline = 'middle';                     // optional for nicer vertical centering
-    ctx.imageSmoothingEnabled = true;                // smoother fills/strokes
-    // —— end retina setup ——
-
-    let segments = [], angleCurrent = 0, angleVel = 0;
+    // Canvas & wheel logic
+    const canvas = document.getElementById('wheelcanvas'),
+          ctx    = canvas.getContext('2d'),
+          dpr    = window.devicePixelRatio || 1;
+    let displayedSize, segments = [], angleCurrent = 0, angleVel = 0;
     const friction = 0.986;
+
+    function resizeCanvasToDisplaySize() {
+      const rect = canvas.getBoundingClientRect();
+      const cssSize = Math.min(rect.width, rect.height);
+      canvas.width  = Math.round(cssSize * dpr);
+      canvas.height = Math.round(cssSize * dpr);
+      ctx.resetTransform();
+      ctx.scale(dpr, dpr);
+      ctx.textBaseline = 'middle';
+      ctx.imageSmoothingEnabled = true;
+      return cssSize;
+    }
+
     function getItems() {
       return document.getElementById('wheel-items').value
         .split('\n').map(s => s.trim()).filter(s => s);
     }
+
     function drawWheel() {
+      displayedSize = resizeCanvasToDisplaySize();
       segments = getItems();
-      const num = segments.length;
-      const arc = 2 * Math.PI / num;
-      ctx.clearRect(0, 0, size, size);
+      const num = segments.length,
+            arc = 2 * Math.PI / num,
+            cx  = displayedSize / 2,
+            cy  = displayedSize / 2,
+            r   = displayedSize / 2 - 10;
+
+      ctx.clearRect(0, 0, displayedSize, displayedSize);
+
       for (let i = 0; i < num; i++) {
         const start = angleCurrent + i * arc;
         ctx.beginPath();
-        ctx.moveTo(size/2, size/2);
-        ctx.arc(size/2,size/2,size/2 - 10,start, start + arc);
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, r, start, start + arc);
         ctx.fillStyle = i % 2 ? '#2a2a2a' : '#1e1e1e';
         ctx.fill();
         ctx.strokeStyle = '#aaa295';
         ctx.stroke();
+
         ctx.save();
-        ctx.translate(size/2,size/2);
+        ctx.translate(cx, cy);
         ctx.rotate(start + arc/2);
         ctx.textAlign = 'right';
         ctx.fillStyle = '#e0e0e0';
-        ctx.font = '24px sans-serif';
-        ctx.fillText(segments[i], size/2 - 20, 0);
+        ctx.font = `${displayedSize / 15}px sans-serif`;
+        ctx.fillText(segments[i], r - 10, 0);
         ctx.restore();
       }
-      // new pointer at 3 o’clock
-        const 
-            cx    = size/2,
-            cy    = size/2,
-            r     = size/2 - 10,
-            tipX  = cx + r,
-            tipY  = cy,
-            baseX = tipX + 20;   // how far “outside” the wheel the base sits
 
-        ctx.fillStyle = '#b8a585';
-        ctx.beginPath();
-        // base upper corner
-        ctx.moveTo(baseX, tipY - 10);
-        // base lower corner
-        ctx.lineTo(baseX, tipY + 10);
-        // tip touching wheel
-        ctx.lineTo(tipX, tipY);
-        ctx.closePath();
-        ctx.fill();
+      // Draw pointer at 3 o’clock
+      const tipX  = cx + r,
+            tipY  = cy,
+            baseX = tipX + 20;
+
+      ctx.fillStyle = '#b8a585';
+      ctx.beginPath();
+      ctx.moveTo(baseX, tipY - 10);
+      ctx.lineTo(baseX, tipY + 10);
+      ctx.lineTo(tipX, tipY);
+      ctx.closePath();
+      ctx.fill();
     }
+
     function spin() {
       if (!segments.length) return alert('Add at least one item.');
-      angleVel = (Math.random() * 0.3 + 0.2);
+      angleVel = Math.random() * 0.3 + 0.2;
       requestAnimationFrame(rotate);
     }
+
     function rotate() {
       angleVel *= friction;
       angleCurrent += angleVel;
@@ -529,20 +540,22 @@ Remy
       if (angleVel > 0.0001) {
         requestAnimationFrame(rotate);
       } else {
-        const arc = 2 * Math.PI / segments.length;
-        const idx = Math.floor((2*Math.PI - angleCurrent % (2*Math.PI)) / arc) % segments.length;
+        const arc = 2 * Math.PI / segments.length,
+              idx = Math.floor((2*Math.PI - angleCurrent % (2*Math.PI)) / arc) % segments.length;
         showResult(segments[idx], idx);
       }
     }
+
     document.getElementById('spin-btn').addEventListener('click', () => {
       drawWheel();
       spin();
     });
 
-    // Modal
-    const modal = document.getElementById('result-modal');
-    const resultText = document.getElementById('result-text');
+    // Modal logic
+    const modal      = document.getElementById('result-modal'),
+          resultText = document.getElementById('result-text');
     let lastIndex = -1;
+
     function showResult(item, idx) {
       lastIndex = idx;
       resultText.textContent = item;
@@ -559,11 +572,17 @@ Remy
       drawWheel();
     });
 
+    // Redraw as user types
     document.getElementById('wheel-items')
-            .addEventListener('input', drawWheel);
+      .addEventListener('input', drawWheel);
 
-    // Initial
+    // Initial render & resize handler
+    window.addEventListener('resize', drawWheel);
     drawWheel();
   </script>
 </body>
 </html>
+
+
+
+

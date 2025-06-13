@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Japan Trip Itinerary & Wheel Spin</title>
+  <style>
+    /* Base reset */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #121212;
+      color: #e0e0e0;
+      line-height: 1.5;
+    }
+
+    /* Hamburger menu */
+    #menu-btn {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      font-size: 1.75rem;
+      color: #e0e0e0;
+      cursor: pointer;
+      z-index: 1000;
+    }
+    #side-menu {
+      position: fixed;
+      top: 0; left: -220px;
+      width: 200px;
+      height: 100%;
+      background: #1e1e1e;
+      transition: left 0.3s ease;
+      padding-top: 3rem;
+      z-index: 999;
+    }
+    #side-menu.open { left: 0; }
+    #side-menu ul { list-style: none; }
+    #side-menu li + li { margin-top: 1rem; }
+    #side-menu a {
+      color: #b8a585;
+      text-decoration: none;
+      padding: 0.5rem 1rem;
+      display: block;
+      transition: background 0.2s ease;
+    }
+    #side-menu a:hover { background: #2a2a2a; }
+
+    header {
+      background: linear-gradient(135deg, #a4947d, #847856);
+      color: #fff;
+      padding: 1.5rem 1rem;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.7);
+    }
+    header h1 { font-size: 1.75rem; margin-bottom: 0.25rem; }
+    header p { font-size: 1rem; opacity: 0.9; }
+
+    .container {
+      max-width: 640px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    .accordion {
+      background: #1e1e1e;
+      border: 1px solid #aaa295;
+      border-radius: 6px;
+      margin: 0.75rem 0;
+      padding: 1rem 2rem 1rem 1.2rem;
+      font-size: 1rem;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+      color: #e0e0e0;
+    }
+    .accordion:hover { background: #2a2a2a; box-shadow: 0 2px 6px rgba(0,0,0,0.7); }
+    .accordion::after {
+      content: "\25BC";
+      position: absolute;
+      right: 1rem; top: 50%;
+      transform: translateY(-50%) rotate(0deg);
+      transition: transform 0.3s ease;
+      font-size: 0.85rem;
+      color: #b8a585;
+    }
+    .accordion.active::after { transform: translateY(-50%) rotate(180deg); }
+
+    .panel {
+      background: #1e1e1e;
+      border-left: 1px solid #aaa295;
+      border-right: 1px solid #aaa295;
+      border-bottom: 1px solid #aaa295;
+      border-radius: 0 0 6px 6px;
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.3s ease;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    }
+    .panel ul {
+      padding: 1rem 1.5rem;
+      list-style-type: none;
+    }
+    .panel li { margin-bottom: 0.75rem; }
+    .panel li strong {
+      display: block;
+      margin-bottom: 0.3rem;
+      font-weight: 600;
+    }
+    .panel a {
+      color: #b8a585;
+      text-decoration: none;
+    }
+    .panel a:hover { text-decoration: underline; }
+
+    /* Wheel section */
+    #wheel-section { display: none; padding: 2rem 1rem; }
+    #wheel-section h2 { text-align: center; margin-bottom: 1rem; }
+    #wheel-items {
+      width: 100%; height: 6rem;
+      background: #1e1e1e; color: #e0e0e0; border: 1px solid #aaa295;
+      border-radius: 4px; padding: 0.5rem;
+      font-family: inherit; margin-bottom: 1rem;
+    }
+    #spin-btn {
+      display: block;
+      margin: 0 auto 1rem;
+      padding: 0.5rem 1.5rem;
+      background: #b8a585; color: #121212;
+      border: none; border-radius: 4px;
+      cursor: pointer; font-size: 1rem;
+    }
+    #wheelcanvas {
+      display: block;
+      margin: 0 auto;
+      background: #1e1e1e;
+      border: 2px solid #aaa295;
+      border-radius: 50%;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8);
+      justify-content: center; align-items: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: #2a2a2a;
+      padding: 1.5rem;
+      border-radius: 6px;
+      text-align: center;
+      max-width: 80%;
+      color: #e0e0e0;
+    }
+    .modal-content p {
+      font-size: 1.5rem; margin-bottom: 1rem;
+    }
+    .modal-content button {
+      margin: 0 0.5rem;
+      padding: 0.5rem 1rem;
+      background: #b8a585; color: #121212;
+      border: none; border-radius: 4px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="menu-btn">&#9776;</div>
+  <nav id="side-menu">
+    <ul>
+      <li><a href="#" id="link-itinerary">Itinerary</a></li>
+      <li><a href="#" id="link-wheel">Wheel Spin</a></li>
+    </ul>
+  </nav>
+
+  <header>
+    <h1>Japan Trip Itinerary</h1>
+    <p>June 14 – July 4</p>
+  </header>
+
+  <!-- Itinerary Section -->
+  <section id="itinerary">
+    <div class="container">
+      <!-- Leg 1 -->
+      <button class="accordion">Tokyo (June 14–15)</button>
+      <div class="panel">
+        <ul>
+          <li>
+            <strong>June 14:</strong>
+            <ul><li>Flight</li></ul>
+          </li>
+          <li>
+            <strong>June 15:</strong>
+            <ul>
+              <li>Asakusa &amp; Senso-ji</li>
+              <li>6:30 PM Tokyo Skytree</li>
+              <li>Asahi Sky Room</li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+
+    <!-- Leg 2 -->
+    <button class="accordion">Travel: Tokyo → Sapporo (June 16)</button>
+    <div class="panel">
+      <ul>
+        <li>TeamLab Borderless (9:30–10:00 AM)</li>
+        <li>Sapporo flight (3:50 PM)</li>
+        <li>Susukino</li>
+      </ul>
+    </div>
+
+    <!-- Leg 3 -->
+    <button class="accordion">Hokkaido (June 17–19)</button>
+    <div class="panel">
+      <ul>
+        <li>
+          <strong>June 17:</strong>
+          <ul>
+            <li>Sapporo Beer Museum</li>
+            <li>Odori Park</li>
+            <li>Historic Village of Hokkaido</li>
+            <li>Drive to Biei</li>
+          </ul>
+        </li>
+        <li>
+          <strong>June 18:</strong>
+          <ul>
+            <li>Shikisai no Oka</li>
+            <li>Farm Tomita</li>
+            <li>Furano Cheese Factory</li>
+            <li>Shirogane Blue Pond and Shirahige Waterfall</li>
+          </ul>
+        </li>
+        <li>
+          <strong>June 19:</strong>
+          <ul>
+            <li>Asahidake hike</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Leg 4 -->
+    <button class="accordion">Travel: Sapporo → Kyoto (June 20)</button>
+    <div class="panel">
+      <ul>
+        <li>Kyoto flight</li>
+      </ul>
+    </div>
+
+    <!-- Leg 5 -->
+    <button class="accordion">Kyoto (June 21–24)</button>
+    <div class="panel">
+      <ul>
+        <li>
+          <strong>June 21:</strong>
+          <ul>
+            <li>Ninja &amp; Samurai Experience (11:00 AM)</li>
+            <li>Nishiki Market (<a href="https://www.japan-guide.com/e/e3931.html">link</a>)</li>
+            <li>Nijo Castle</li>
+          </ul>
+        </li>
+        <li>
+          <strong>June 22:</strong>
+          <ul>
+            <li>Kinkaku-ji (Golden Pavilion)</li>
+            <li>Arashiyama Bamboo Grove</li>
+            <li>Yokai Folk Monster &amp; Jujutsu Curse Tour (3:00–5:00 PM)</li>
+            <li>Evening in Gion</li>
+            <li>Kawaramachi and Kiyamachi districts</li>
+          </ul>
+        </li>
+        <li>
+          <strong>June 23:</strong>
+          <ul>
+            <li>Fushimi Inari Shrine</li>
+            <li>Sake tour (3:00 PM) (<a href="https://www.getyourguide.com/en-au/kyoto-l96826/3-hours-kyoto-insider-sake-experience-t446344?ranking_uuid=8764238d-609e-42eb-b9f8-9ec28a97f495&_pc=1%2C6&date_from=2025-06-21&visitor-id=EMJ4JDQQ7059J0OIK7Y3VK55BTXBN06H&locale_autoredirect_optout=true">link</a>)</li>
+          </ul>
+        </li>
+        <li>
+          <strong>June 24 (Nara):</strong>
+          <ul>
+            <li>Todaiji Temple &amp; Great Buddha</li>
+            <li>Deer park in Nara</li>
+            <li>Kasuga Taisha Shrine</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Leg 6 -->
+    <button class="accordion">Travel: Kyoto → Osaka (June 25)</button>
+    <div class="panel">
+      <ul>
+        <li>Amerikamura (<a href="https://www.japan.travel/en/spot/1110/">link</a>, <a href="https://piqtour.com/amemura/">link</a>)</li>
+        <li>Dotonbori (evening)</li>
+      </ul>
+    </div>
+
+    <!-- Leg 7 -->
+    <button class="accordion">Osaka &amp; Tottori (June 26–28)</button>
+    <div class="panel">
+      <ul>
+        <li>
+          <strong>June 26:</strong>
+          <ul>
+            <li>Universal Studios (Super Nintendo World)</li>
+          </ul>
+        </li>
+        <li>
+          <strong>June 27 (Tottori):</strong>
+          <ul>
+            <li>Tottori Sand Dunes + camel rides (<a href="https://www.sakyu-vc.com/en/activity/1591/">link</a>)</li>
+            <li>Sand Museum (<a href="https://www.sand-museum.jp/en/">link</a>)</li>
+          </ul>
+        </li>
+        <li>
+          <strong>June 28:</strong>
+          <ul>
+            <li>Tsutenkaku slide</li>
+            <li>Asahi Beer Museum (<a href="https://www.japan.travel/en/japans-local-treasures/asahi-beer-museum-2022/">link</a>)</li>
+            <li>Round One arcade</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Leg 8 -->
+    <button class="accordion">Travel: Osaka → Tokyo (June 29)</button>
+    <div class="panel">
+      <ul>
+        <li>Morning at Osaka Castle</li>
+        <li>Tokyo Shinkansen (3:30–6:00 PM)</li>
+        <li>Shibuya Scramble</li>
+      </ul>
+    </div>
+
+    <!-- Leg 9 -->
+    <button class="accordion">Tokyo (June 30)</button>
+    <div class="panel">
+      <ul>
+        <li>TeamLab Planets (10:30–11:00 AM)</li>
+        <li>Shopping: Harajuku &amp; Omotesando</li>
+        <li>Explore Akihabara</li>
+      </ul>
+    </div>
+
+    <!-- Leg 10 -->
+    <button class="accordion">Travel: Tokyo → Kawaguchiko (July 1)</button>
+    <div class="panel">
+      <ul>
+        <li>Morning: Shibuya Sky observation</li>
+        <li>Stroll Harajuku</li>
+        <li>Late bus to Kawaguchiko</li>
+      </ul>
+    </div>
+
+    <!-- Leg 11 -->
+    <button class="accordion">Kawaguchiko &amp; Mt. Fuji (July 2)</button>
+    <div class="panel">
+      <ul>
+        <li>Fuji hike (<a href="https://www.japan-guide.com/e/e6922.html">guide</a>, <a href="https://www.fujisan-climb.jp/en/Reguration_Yamanashi.html">regulations</a>)</li>
+      </ul>
+    </div>
+
+    <!-- Leg 12 -->
+    <button class="accordion">Travel: Kawaguchiko → Tokyo (July 3)</button>
+    <div class="panel">
+      <ul>
+        <li>Early bus back to Tokyo</li>
+        <li>Shinjuku Gyoen National Garden</li>
+        <li>Pub crawl (<a href="https://www.getyourguide.com/en-au/tokyo-l193/tokyo-shinjuku-bar-hopping-and-pub-crawl-t872947/?ranking_uuid=255cc706-845f-4d24-92ef-aacbce50431b">link</a>)</li>
+      </ul>
+    </div>
+
+    <!-- Leg 13 -->
+    <button class="accordion">Tokyo Finale (July 3–4)</button>
+      <div class="panel">
+        <ul>
+          <li>
+            <strong>July 3:</strong>
+            <ul>
+              <li>Shinjuku Gyoen National Garden</li>
+              <li>Evening pub crawl in Shinjuku</li>
+            </ul>
+          </li>
+          <li>
+            <strong>July 4:</strong>
+            <ul><li>Flight departs 11:10 AM</li></ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Wheel Spin Section -->
+  <section id="wheel-section">
+    <h2>Wheel Spin</h2>
+    <textarea id="wheel-items" placeholder="Enter items, one per line">Liam
+Raymond
+Peter
+Pierce
+Darren
+Remy
+</textarea>
+    <button id="spin-btn">Spin the Wheel</button>
+    <canvas id="wheelcanvas" width="500" height="500"></canvas>
+  </section>
+
+  <!-- Result Modal -->
+  <div id="result-modal" class="modal">
+    <div class="modal-content">
+      <p id="result-text"></p>
+      <button id="close-btn">Close</button>
+      <button id="remove-btn">Remove</button>
+    </div>
+  </div>
+
+  <script>
+    // Menu toggle
+    const menuBtn = document.getElementById('menu-btn');
+    const sideMenu = document.getElementById('side-menu');
+    menuBtn.addEventListener('click', () => sideMenu.classList.toggle('open'));
+
+    // Links
+    document.getElementById('link-itinerary').addEventListener('click', e => {
+      e.preventDefault();
+      document.getElementById('itinerary').style.display = 'block';
+      document.getElementById('wheel-section').style.display = 'none';
+      sideMenu.classList.remove('open');
+    });
+    document.getElementById('link-wheel').addEventListener('click', e => {
+      e.preventDefault();
+      document.getElementById('itinerary').style.display = 'none';
+      document.getElementById('wheel-section').style.display = 'block';
+      sideMenu.classList.remove('open');
+      drawWheel();
+    });
+
+    // Accordion
+    document.querySelectorAll('.accordion').forEach(btn => {
+      btn.addEventListener('click', () => {
+        btn.classList.toggle('active');
+        const panel = btn.nextElementSibling;
+        panel.style.maxHeight = panel.style.maxHeight ? null : panel.scrollHeight + "px";
+      });
+    });
+
+    // Wheel logic (unchanged)
+    const canvas = document.getElementById('wheelcanvas');
+    const ctx = canvas.getContext('2d');
+
+    // —— Retina‐friendly canvas setup ——
+    const dpr = window.devicePixelRatio || 1;
+    const size = 500;                                // logical size in CSS px
+    canvas.style.width  = size + 'px';
+    canvas.style.height = size + 'px';
+    canvas.width  = size * dpr;                      // actual pixel buffer
+    canvas.height = size * dpr;
+    ctx.scale(dpr, dpr);                             // so all your draw calls map 1:1
+    ctx.textBaseline = 'middle';                     // optional for nicer vertical centering
+    ctx.imageSmoothingEnabled = true;                // smoother fills/strokes
+    // —— end retina setup ——
+
+    let segments = [], angleCurrent = 0, angleVel = 0;
+    const friction = 0.986;
+    function getItems() {
+      return document.getElementById('wheel-items').value
+        .split('\n').map(s => s.trim()).filter(s => s);
+    }
+    function drawWheel() {
+      segments = getItems();
+      const num = segments.length;
+      const arc = 2 * Math.PI / num;
+      ctx.clearRect(0, 0, size, size);
+      for (let i = 0; i < num; i++) {
+        const start = angleCurrent + i * arc;
+        ctx.beginPath();
+        ctx.moveTo(size/2, size/2);
+        ctx.arc(size/2,size/2,size/2 - 10,start, start + arc);
+        ctx.fillStyle = i % 2 ? '#2a2a2a' : '#1e1e1e';
+        ctx.fill();
+        ctx.strokeStyle = '#aaa295';
+        ctx.stroke();
+        ctx.save();
+        ctx.translate(size/2,size/2);
+        ctx.rotate(start + arc/2);
+        ctx.textAlign = 'right';
+        ctx.fillStyle = '#e0e0e0';
+        ctx.font = '24px sans-serif';
+        ctx.fillText(segments[i], size/2 - 20, 0);
+        ctx.restore();
+      }
+      // new pointer at 3 o’clock
+        const 
+            cx    = size/2,
+            cy    = size/2,
+            r     = size/2 - 10,
+            tipX  = cx + r,
+            tipY  = cy,
+            baseX = tipX + 20;   // how far “outside” the wheel the base sits
+
+        ctx.fillStyle = '#b8a585';
+        ctx.beginPath();
+        // base upper corner
+        ctx.moveTo(baseX, tipY - 10);
+        // base lower corner
+        ctx.lineTo(baseX, tipY + 10);
+        // tip touching wheel
+        ctx.lineTo(tipX, tipY);
+        ctx.closePath();
+        ctx.fill();
+    }
+    function spin() {
+      if (!segments.length) return alert('Add at least one item.');
+      angleVel = (Math.random() * 0.3 + 0.2);
+      requestAnimationFrame(rotate);
+    }
+    function rotate() {
+      angleVel *= friction;
+      angleCurrent += angleVel;
+      drawWheel();
+      if (angleVel > 0.0001) {
+        requestAnimationFrame(rotate);
+      } else {
+        const arc = 2 * Math.PI / segments.length;
+        const idx = Math.floor((2*Math.PI - angleCurrent % (2*Math.PI)) / arc) % segments.length;
+        showResult(segments[idx], idx);
+      }
+    }
+    document.getElementById('spin-btn').addEventListener('click', () => {
+      drawWheel();
+      spin();
+    });
+
+    // Modal
+    const modal = document.getElementById('result-modal');
+    const resultText = document.getElementById('result-text');
+    let lastIndex = -1;
+    function showResult(item, idx) {
+      lastIndex = idx;
+      resultText.textContent = item;
+      modal.style.display = 'flex';
+    }
+    document.getElementById('close-btn').addEventListener('click', () => {
+      modal.style.display = 'none';
+    });
+    document.getElementById('remove-btn').addEventListener('click', () => {
+      const items = getItems();
+      items.splice(lastIndex, 1);
+      document.getElementById('wheel-items').value = items.join('\n');
+      modal.style.display = 'none';
+      drawWheel();
+    });
+
+    document.getElementById('wheel-items')
+            .addEventListener('input', drawWheel);
+
+    // Initial
+    drawWheel();
+  </script>
+</body>
+</html>

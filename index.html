@@ -427,159 +427,202 @@ Raymond</textarea>
   </div>
 
   <script>
-    // Menu toggle
-    const menuBtn = document.getElementById('menu-btn'),
-          sideMenu = document.getElementById('side-menu');
-    menuBtn.addEventListener('click', () => sideMenu.classList.toggle('open'));
+  // Menu toggle
+  const menuBtn = document.getElementById('menu-btn'),
+        sideMenu = document.getElementById('side-menu');
+  menuBtn.addEventListener('click', () => sideMenu.classList.toggle('open'));
 
-    // Section links
-    document.getElementById('link-itinerary').addEventListener('click', e => {
-      e.preventDefault();
-      document.getElementById('itinerary').style.display = 'block';
-      document.getElementById('wheel-section').style.display = 'none';
-      sideMenu.classList.remove('open');
-    });
-    document.getElementById('link-wheel').addEventListener('click', e => {
-      e.preventDefault();
-      document.getElementById('itinerary').style.display = 'none';
-      document.getElementById('wheel-section').style.display = 'block';
-      sideMenu.classList.remove('open');
-      drawWheel();
-    });
-
-    // Accordion behavior
-    document.querySelectorAll('.accordion').forEach(btn => {
-      btn.addEventListener('click', () => {
-        btn.classList.toggle('active');
-        const panel = btn.nextElementSibling;
-        panel.style.maxHeight = panel.style.maxHeight
-          ? null
-          : panel.scrollHeight + 'px';
-      });
-    });
-
-    // Canvas & wheel logic
-    const canvas = document.getElementById('wheelcanvas'),
-          ctx    = canvas.getContext('2d'),
-          dpr    = window.devicePixelRatio || 1;
-    let displayedSize, segments = [], angleCurrent = 0, angleVel = 0;
-    const friction = 0.986;
-
-    function resizeCanvasToDisplaySize() {
-      const rect = canvas.getBoundingClientRect();
-      const cssSize = Math.min(rect.width, rect.height);
-      canvas.width  = Math.round(cssSize * dpr);
-      canvas.height = Math.round(cssSize * dpr);
-      ctx.resetTransform();
-      ctx.scale(dpr, dpr);
-      ctx.textBaseline = 'middle';
-      ctx.imageSmoothingEnabled = true;
-      return cssSize;
-    }
-
-    function getItems() {
-      return document.getElementById('wheel-items').value
-        .split('\n').map(s => s.trim()).filter(s => s);
-    }
-
-    function drawWheel() {
-      displayedSize = resizeCanvasToDisplaySize();
-      segments = getItems();
-      const num = segments.length,
-            arc = 2 * Math.PI / num,
-            cx  = displayedSize / 2,
-            cy  = displayedSize / 2,
-            r   = displayedSize / 2 - 10;
-
-      ctx.clearRect(0, 0, displayedSize, displayedSize);
-
-      for (let i = 0; i < num; i++) {
-        const start = angleCurrent + i * arc;
-        ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        ctx.arc(cx, cy, r, start, start + arc);
-        ctx.fillStyle = i % 2 ? '#2a2a2a' : '#1e1e1e';
-        ctx.fill();
-        ctx.strokeStyle = '#aaa295';
-        ctx.stroke();
-
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.rotate(start + arc/2);
-        ctx.textAlign = 'right';
-        ctx.fillStyle = '#e0e0e0';
-        ctx.font = `${displayedSize / 15}px sans-serif`;
-        ctx.fillText(segments[i], r - 10, 0);
-        ctx.restore();
-      }
-
-      // Draw pointer at 3 o’clock
-      const tipX  = cx + r,
-            tipY  = cy,
-            baseX = tipX + 20;
-
-      ctx.fillStyle = '#b8a585';
-      ctx.beginPath();
-      ctx.moveTo(baseX, tipY - 10);
-      ctx.lineTo(baseX, tipY + 10);
-      ctx.lineTo(tipX, tipY);
-      ctx.closePath();
-      ctx.fill();
-    }
-
-    function spin() {
-      if (!segments.length) return alert('Add at least one item.');
-      angleVel = Math.random() * 0.3 + 0.2;
-      requestAnimationFrame(rotate);
-    }
-
-    function rotate() {
-      angleVel *= friction;
-      angleCurrent += angleVel;
-      drawWheel();
-      if (angleVel > 0.0002) {
-        requestAnimationFrame(rotate);
-      } else {
-        const arc = 2 * Math.PI / segments.length,
-              idx = Math.floor((2*Math.PI - angleCurrent % (2*Math.PI)) / arc) % segments.length;
-        showResult(segments[idx], idx);
-      }
-    }
-
-    document.getElementById('spin-btn').addEventListener('click', () => {
-      drawWheel();
-      spin();
-    });
-
-    // Modal logic
-    const modal      = document.getElementById('result-modal'),
-          resultText = document.getElementById('result-text');
-    let lastIndex = -1;
-
-    function showResult(item, idx) {
-      lastIndex = idx;
-      resultText.textContent = item;
-      modal.style.display = 'flex';
-    }
-    document.getElementById('close-btn').addEventListener('click', () => {
-      modal.style.display = 'none';
-    });
-    document.getElementById('remove-btn').addEventListener('click', () => {
-      const items = getItems();
-      items.splice(lastIndex, 1);
-      document.getElementById('wheel-items').value = items.join('\n');
-      modal.style.display = 'none';
-      drawWheel();
-    });
-
-    // Redraw as user types
-    document.getElementById('wheel-items')
-      .addEventListener('input', drawWheel);
-
-    // Initial render & resize handler
-    window.addEventListener('resize', drawWheel);
+  // Section links
+  document.getElementById('link-itinerary').addEventListener('click', e => {
+    e.preventDefault();
+    document.getElementById('itinerary').style.display     = 'block';
+    document.getElementById('wheel-section').style.display = 'none';
+    sideMenu.classList.remove('open');
+  });
+  document.getElementById('link-wheel').addEventListener('click', e => {
+    e.preventDefault();
+    document.getElementById('itinerary').style.display     = 'none';
+    document.getElementById('wheel-section').style.display = 'block';
+    sideMenu.classList.remove('open');
     drawWheel();
-  </script>
+  });
+
+  // Accordion
+  document.querySelectorAll('.accordion').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.classList.toggle('active');
+      const panel = btn.nextElementSibling;
+      panel.style.maxHeight = panel.style.maxHeight
+        ? null
+        : panel.scrollHeight + 'px';
+    });
+  });
+
+  // Canvas & wheel logic
+  const canvas = document.getElementById('wheelcanvas'),
+        ctx    = canvas.getContext('2d'),
+        dpr    = window.devicePixelRatio || 1;
+
+  let displayedSize,
+      segments     = [],
+      angleCurrent = 0;
+
+  // spin parameters
+  const spinDuration = 10_000,  // total duration in ms
+        k            = 6;       // exponential-decay rate
+
+  // precompute denominator for our custom ease-to-zero
+  const denom = (1 - Math.exp(-k)) - k * Math.exp(-k);
+
+  function easeExpToZero(t) {
+    // t in [0..1], returns [0..1] easing that reaches exactly 1 at t=1
+    return ((1 - Math.exp(-k * t)) - k * Math.exp(-k) * t) / denom;
+  }
+
+  let startAngle = 0,
+      totalAngle = 0;
+
+  function resizeCanvasToDisplaySize() {
+    const rect    = canvas.getBoundingClientRect(),
+          cssSize = Math.min(rect.width, rect.height);
+    canvas.width  = Math.round(cssSize * dpr);
+    canvas.height = Math.round(cssSize * dpr);
+    ctx.resetTransform();
+    ctx.scale(dpr, dpr);
+    ctx.textBaseline        = 'middle';
+    ctx.imageSmoothingEnabled = true;
+    return cssSize;
+  }
+
+  function getItems() {
+    return document.getElementById('wheel-items').value
+      .split('\n')
+      .map(s => s.trim())
+      .filter(s => s);
+  }
+
+  function drawWheel() {
+    displayedSize = resizeCanvasToDisplaySize();
+    segments      = getItems();
+    const num = segments.length,
+          arc = 2 * Math.PI / num,
+          cx  = displayedSize / 2,
+          cy  = displayedSize / 2,
+          r   = displayedSize / 2 - 10;
+
+    ctx.clearRect(0, 0, displayedSize, displayedSize);
+
+    // draw slices & labels
+    for (let i = 0; i < num; i++) {
+      const start = angleCurrent + i * arc;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, r, start, start + arc);
+      ctx.fillStyle   = i % 2 ? '#2a2a2a' : '#1e1e1e';
+      ctx.fill();
+      ctx.strokeStyle = '#aaa295';
+      ctx.stroke();
+
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(start + arc / 2);
+      ctx.textAlign  = 'right';
+      ctx.fillStyle  = '#e0e0e0';
+      ctx.font       = `${displayedSize / 15}px sans-serif`;
+      ctx.fillText(segments[i], r - 10, 0);
+      ctx.restore();
+    }
+
+    // draw pointer at 3 o'clock
+    const tipX  = cx + r,
+          tipY  = cy,
+          baseX = tipX + 20;
+    ctx.fillStyle = '#b8a585';
+    ctx.beginPath();
+    ctx.moveTo(baseX, tipY - 10);
+    ctx.lineTo(baseX, tipY + 10);
+    ctx.lineTo(tipX, tipY);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function spin() {
+    const items = getItems();
+    if (!items.length) {
+      alert('Add at least one item.');
+      return;
+    }
+    startAngle = angleCurrent % (2 * Math.PI);
+    // randomize number of rotations between 5 and 12
+    const minRot = 5, maxRot = 20;
+    const baseRotations = Math.random() * (maxRot - minRot) + minRot;
+
+    // plus a random fraction of one extra turn
+    const extraTurn = Math.random();  // 0 → 1 full turn
+    const rotations = baseRotations + extraTurn
+
+    totalAngle = rotations * 2 * Math.PI;
+    rotate.startTime = 0;
+    requestAnimationFrame(rotate);
+  }
+
+  function rotate(timestamp) {
+    if (!rotate.startTime) rotate.startTime = timestamp;
+    const elapsed = timestamp - rotate.startTime,
+          t       = Math.min(elapsed / spinDuration, 1),
+          factor  = easeExpToZero(t);
+
+    angleCurrent = startAngle + totalAngle * factor;
+    drawWheel();
+
+    if (elapsed < spinDuration) {
+      requestAnimationFrame(rotate);
+    } else {
+      // finalize and show result
+      rotate.startTime = 0;
+      const finalAngle = angleCurrent % (2 * Math.PI),
+            arc        = 2 * Math.PI / segments.length,
+            idx        = Math.floor((2 * Math.PI - finalAngle) / arc) % segments.length;
+      showResult(segments[idx], idx);
+    }
+  }
+
+  // hook spin button
+  document.getElementById('spin-btn').addEventListener('click', () => {
+    drawWheel();
+    spin();
+  });
+
+  // modal logic
+  const modal      = document.getElementById('result-modal'),
+        resultText = document.getElementById('result-text');
+  let lastIndex = -1;
+  function showResult(item, idx) {
+    lastIndex            = idx;
+    resultText.textContent = item;
+    modal.style.display     = 'flex';
+  }
+  document.getElementById('close-btn').addEventListener('click', () => {
+    modal.style.display = 'none';
+  });
+  document.getElementById('remove-btn').addEventListener('click', () => {
+    const items = getItems();
+    items.splice(lastIndex, 1);
+    document.getElementById('wheel-items').value = items.join('\n');
+    modal.style.display = 'none';
+    drawWheel();
+  });
+
+  // live redraw & window resize
+  document.getElementById('wheel-items').addEventListener('input', drawWheel);
+  window.addEventListener('resize', drawWheel);
+
+  // initial draw
+  drawWheel();
+</script>
+
+
+
 </body>
 </html>
 

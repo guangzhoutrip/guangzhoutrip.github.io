@@ -537,7 +537,7 @@ Raymond</textarea>
       angleVel *= friction;
       angleCurrent += angleVel;
       drawWheel();
-      if (angleVel > 0.0001) {
+      if (angleVel > 0.0002) {
         requestAnimationFrame(rotate);
       } else {
         const arc = 2 * Math.PI / segments.length,

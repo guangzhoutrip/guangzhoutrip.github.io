@@ -60,6 +60,24 @@
       padding: 0 1rem;
     }
 
+
+    /* Raymond Section */
+    #raymond-section {
+      display: none;
+      padding: 2rem 1rem;
+    }
+    #raymond-section .container {
+      text-align: center;
+    }
+    #raymond-section img {
+      width: 100%;
+      max-width: 500px;
+      display: block;
+      margin: 0 auto;
+      border: 2px solid #aaa295;
+      border-radius: 6px;
+    }
+
     .accordion {
       background: #1e1e1e;
       border: 1px solid #aaa295;
@@ -180,6 +198,7 @@
     <ul>
       <li><a href="#" id="link-itinerary">Itinerary</a></li>
       <li><a href="#" id="link-wheel">Wheel Spin</a></li>
+      <li><a href="#" id="link-raymond">Raymond</a></li>
     </ul>
   </nav>
 
@@ -417,6 +436,13 @@ Raymond</textarea>
     <canvas id="wheelcanvas"></canvas>
   </section>
 
+  <!-- Raymond Section -->
+  <section id="raymond-section">
+    <div class="container">
+      <img src="images/raymond.png" alt="Raymond">
+    </div>
+  </section>
+
   <!-- Result Modal -->
   <div id="result-modal" class="modal">
     <div class="modal-content">
@@ -437,14 +463,24 @@ Raymond</textarea>
     e.preventDefault();
     document.getElementById('itinerary').style.display     = 'block';
     document.getElementById('wheel-section').style.display = 'none';
+    document.getElementById('raymond-section').style.display  = 'none';
     sideMenu.classList.remove('open');
   });
   document.getElementById('link-wheel').addEventListener('click', e => {
     e.preventDefault();
     document.getElementById('itinerary').style.display     = 'none';
     document.getElementById('wheel-section').style.display = 'block';
+    document.getElementById('raymond-section').style.display  = 'none';
     sideMenu.classList.remove('open');
     drawWheel();
+  });
+
+  document.getElementById('link-raymond').addEventListener('click', e => {
+    e.preventDefault();
+    document.getElementById('itinerary').style.display     = 'none';
+    document.getElementById('wheel-section').style.display = 'none';
+    document.getElementById('raymond-section').style.display = 'block';
+    sideMenu.classList.remove('open');
   });
 
   // Accordion
